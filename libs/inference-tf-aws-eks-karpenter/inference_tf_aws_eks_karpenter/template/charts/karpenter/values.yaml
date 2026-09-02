@@ -34,6 +34,12 @@ cpu:
 #      g5   = A10G, g6 = L4, g6e = L40S, g7 = RTX PRO 4500, g7e = RTX PRO Server 6000
 gpuG:
   instanceFamilies: ["g5", "g6", "g6e", "g7", "g7e"]
+  # -- Purchase options the g-tier pool may use. Karpenter prefers spot when it is
+  #    allowed and falls back to on-demand. Default is on-demand ONLY: spot is opt-in
+  #    because a reclaim interrupts running work, and because spot has no stable
+  #    published hourly rate for cost reporting. Add "spot" on clusters doing
+  #    interruption-tolerant work that on-demand capacity keeps refusing.
+  capacityTypes: ["on-demand"]
   # -- Authoritative GPU cap for the g-tier pool. Kueue's gpu-g flavor nominalQuota
   #    (nvidia.com/gpu + vpc.amazonaws.com/efa) is derived from this SAME value.
   gpuLimit: "16"

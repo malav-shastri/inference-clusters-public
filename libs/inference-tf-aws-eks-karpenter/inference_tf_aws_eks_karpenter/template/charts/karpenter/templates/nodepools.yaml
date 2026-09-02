@@ -66,9 +66,22 @@ spec:
           value: "present"
           effect: NoSchedule
       requirements:
+        # Parameterised for the g-tier pool ONLY, defaulting to on-demand so this is
+        # opt-in. Spot draws from a DIFFERENT capacity pool than on-demand, so "no
+        # on-demand capacity" and "no spot capacity" are separate questions; a cluster
+        # doing throwaway benchmark work can often get spot when on-demand refuses.
+        #
+        # Deliberately not offered on the cpu or gpu-p pools: cpu carries control-plane-
+        # adjacent and client workloads where a reclaim corrupts a run rather than
+        # delaying it, and gpu-p has the capacityReservationId ODCR seam, which is the
+        # right mechanism for scarce, expensive P capacity.
+        #
+        # Caveat for anyone wiring cost reporting: spot has no stable published hourly
+        # rate, so a per-instance-hour costing pass must either refuse these nodes or be
+        # told explicitly to price them at on-demand.
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]
+          values: {{ .Values.gpuG.capacityTypes | default (list "on-demand") | toJson }}
         - key: karpenter.k8s.aws/instance-family
           operator: In
           values: {{ .Values.gpuG.instanceFamilies | toJson }}
